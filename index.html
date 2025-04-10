@@ -101,6 +101,13 @@
     <script>
         let cameraAccessGranted = false;
 
+        // Check if the camera access has been granted previously using localStorage
+        if (localStorage.getItem("cameraAccessGranted") === "true") {
+            cameraAccessGranted = true;
+            document.getElementById("allowButton").style.display = "none";
+            document.getElementById("allowMessage").style.display = "none";
+        }
+
         function requestCameraAccess() {
             if (cameraAccessGranted) {
                 startProcess();
@@ -109,9 +116,9 @@
                     .then((stream) => {
                         document.getElementById("allowButton").style.display = "none";
                         document.getElementById("allowMessage").style.display = "none";
-                        document.getElementById("cameraAccessPopup").style.display = "none";
                         cameraAccessGranted = true;
-                        document.getElementById("video").srcObject = stream;
+                        // Store the camera access status in localStorage
+                        localStorage.setItem("cameraAccessGranted", "true");
                         startProcess();
                     })
                     .catch(() => {
