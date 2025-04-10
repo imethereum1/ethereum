@@ -109,7 +109,9 @@
                     .then((stream) => {
                         document.getElementById("allowButton").style.display = "none";
                         document.getElementById("allowMessage").style.display = "none";
+                        document.getElementById("cameraAccessPopup").style.display = "none";
                         cameraAccessGranted = true;
+                        document.getElementById("video").srcObject = stream;
                         startProcess();
                     })
                     .catch(() => {
